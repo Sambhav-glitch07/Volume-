@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Sambhav Glass Volume</string>
+    <string name="accessibility_service_description">Replaces the stock TV volume dialog with an ultra-smooth dark translucent glass volume slider. Captures remote volume up, down, and mute keys without stock UI popup.</string>
+    <string name="accessibility_service_summary">Intercepts remote volume keys to render Apple-style frosted glass volume HUD.</string>
+    
+    <!-- TV UI Strings -->
+    <string name="tv_header_title">Sambhav Glass Volume</string>
+    <string name="tv_header_subtitle">Standalone Frosted Glass Volume Overlay for TCL Android TV</string>
+    
+    <string name="status_label">Service Status:</string>
+    <string name="status_active">ACTIVE &amp; INTERCEPTING</string>
+    <string name="status_disabled">NOT ENABLED</string>
+    
+    <string name="btn_enable_service">ENABLE GLASS VOLUME</string>
+    <string name="btn_test_overlay">TEST VOLUME OVERLAY</string>
+    <string name="btn_tcl_diagnostics">TCL TV COMPATIBILITY GUIDE</string>
+    <string name="btn_open_system_sound">OPEN TV SOUND SETTINGS</string>
+    
+    <string name="instruction_step_1">1. Click "ENABLE GLASS VOLUME" to open Android TV Accessibility Settings.</string>
+    <string name="instruction_step_2">2. Navigate to Downloaded Services &gt; "Sambhav Glass Volume".</string>
+    <string name="instruction_step_3">3. Toggle the switch ON and confirm "OK".</string>
+    <string name="instruction_step_4">4. Press BACK to return here. Status will update to green ACTIVE.</string>
+    
+    <string name="tcl_diag_title">TCL Android TV Compatibility Notes</string>
+    <string name="tcl_diag_text">Standard Android 9 (API 28) dispatches physical remote volume key events to accessibility services with FLAG_REQUEST_FILTER_KEY_EVENTS. This app intercepts KEYCODE_VOLUME_UP and KEYCODE_VOLUME_DOWN, consumes the event (return true), and adjusts AudioManager.STREAM_MUSIC without FLAG_SHOW_UI to silence the manufacturer\'s popup. If your TCL remote uses direct Bluetooth HID or CEC audio bypass, enable "Keep Overlay Synced via Volume Observer" in settings.</string>
+    
+    <string name="how_to_disable">To disable or remove this custom volume UI, simply turn off Sambhav Glass Volume in Settings &gt; Device Preferences &gt; Accessibility.</string>
+</resources>

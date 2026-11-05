@@ -1,0 +1,6 @@
+{
+  "name": "Sambhav Glass Volume - Android TV",
+  "description": "Production-grade standalone Android TV application & GitHub Actions build pipeline replicating Apple-style dark translucent glass volume slider for TCL Android TV (Android 9 API 28).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

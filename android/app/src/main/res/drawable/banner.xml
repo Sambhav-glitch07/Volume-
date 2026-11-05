@@ -1,0 +1,30 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <path
+        android:fillColor="#0D1117"
+        android:pathData="M0,0h320v180h-320z" />
+    <!-- Subtle glow background -->
+    <path
+        android:pathData="M40,30h240v120h-240z"
+        android:fillColor="#161B22" />
+    <!-- Glass Pill Shape Representation -->
+    <path
+        android:pathData="M60,65 h140 a25,25 0 0 1 25,25 a25,25 0 0 1 -25,25 h-140 a25,25 0 0 1 -25,-25 a25,25 0 0 1 25,-25 z"
+        android:fillColor="#252B35"
+        android:strokeColor="#50FFFFFF"
+        android:strokeWidth="1.5" />
+    <!-- Pill active fill representation -->
+    <path
+        android:pathData="M60,66 h65 a24,24 0 0 1 24,24 a24,24 0 0 1 -24,24 h-65 a24,24 0 0 1 -24,-24 a24,24 0 0 1 24,-24 z"
+        android:fillColor="#3A4350" />
+    <!-- Circular button on banner -->
+    <path
+        android:pathData="M260,90 m-25,0 a25,25 0 1,1 50,0 a25,25 0 1,1 -50,0"
+        android:fillColor="#252B35"
+        android:strokeColor="#50FFFFFF"
+        android:strokeWidth="1.5" />
+</vector>
