@@ -203,7 +203,7 @@ dependencies {
     category: 'Kotlin Source',
     language: 'kotlin',
     description: 'Custom Canvas view implementing the exact Apple-style frosted glass volume HUD with specular blue-white meniscus refraction.',
-    content: `package \`in\`.sambhav.glassvolume.ui
+    content: `package \\\`in\\\`.sambhav.glassvolume.ui
 
 import android.animation.ValueAnimator
 import android.content.Context
@@ -212,6 +212,7 @@ import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.RadialGradient
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
@@ -220,7 +221,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
-import \`in\`.sambhav.glassvolume.R
+import \\\`in\\\`.sambhav.glassvolume.R
 
 class GlassVolumeView @JvmOverloads constructor(
     context: Context,
@@ -243,23 +244,36 @@ class GlassVolumeView @JvmOverloads constructor(
     private val mainPillRect = RectF()
     private val circleRect = RectF()
     private val pillClipPath = Path()
-    private val crestPath = Path()
+    private val meniscusPath = Path()
+    private val flareArcPath = Path()
 
-    private val pillGlassPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val pillBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val baseGlassPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val frostSheenPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val fillBodyPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val meniscusStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
     }
-    private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val fillCrestHighlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val crystalFlareFillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val crystalFlareStrokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
     }
+    private val outerBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+    }
+    private val innerBevelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+    }
+
     private val circleGlassPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val circleFrostSheenPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val circleInnerDiscPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val circleInnerBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+    }
     private val circleBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
     }
-    private val circleInnerRingPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-    }
+
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
         typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
@@ -304,49 +318,87 @@ class GlassVolumeView @JvmOverloads constructor(
         pillClipPath.reset()
         pillClipPath.addRoundRect(mainPillRect, pillCornerRadius, pillCornerRadius, Path.Direction.CW)
 
-        val glassGradient = LinearGradient(
+        baseGlassPaint.shader = LinearGradient(
             mainPillRect.left, mainPillRect.top,
             mainPillRect.left, mainPillRect.bottom,
             intArrayOf(
-                Color.argb(205, 48, 54, 64),
-                Color.argb(225, 26, 30, 36),
-                Color.argb(240, 18, 21, 26)
+                Color.argb(105, 38, 44, 54),
+                Color.argb(135, 18, 22, 28),
+                Color.argb(155, 10, 12, 16)
             ),
-            floatArrayOf(0f, 0.55f, 1f),
+            floatArrayOf(0f, 0.5f, 1f),
             Shader.TileMode.CLAMP
         )
-        pillGlassPaint.shader = glassGradient
 
-        val borderGradient = LinearGradient(
+        frostSheenPaint.shader = LinearGradient(
             mainPillRect.left, mainPillRect.top,
-            mainPillRect.left, mainPillRect.bottom,
+            mainPillRect.right, mainPillRect.bottom,
             intArrayOf(
-                Color.argb(130, 255, 255, 255),
-                Color.argb(55, 255, 255, 255),
+                Color.argb(45, 255, 255, 255),
+                Color.argb(20, 255, 255, 255),
+                Color.argb(75, 255, 255, 255),
                 Color.argb(25, 255, 255, 255)
             ),
-            floatArrayOf(0f, 0.4f, 1f),
+            floatArrayOf(0f, 0.4f, 0.8f, 1f),
             Shader.TileMode.CLAMP
         )
-        pillBorderPaint.strokeWidth = 1.35f * dp
-        pillBorderPaint.shader = borderGradient
+
+        outerBorderPaint.strokeWidth = 1.35f * dp
+        outerBorderPaint.shader = LinearGradient(
+            mainPillRect.left, mainPillRect.top,
+            mainPillRect.left, mainPillRect.bottom,
+            intArrayOf(
+                Color.argb(225, 255, 255, 255),
+                Color.argb(110, 255, 255, 255),
+                Color.argb(65, 255, 255, 255)
+            ),
+            floatArrayOf(0f, 0.45f, 1f),
+            Shader.TileMode.CLAMP
+        )
+
+        innerBevelPaint.strokeWidth = 1f * dp
+        innerBevelPaint.shader = LinearGradient(
+            mainPillRect.left, mainPillRect.top,
+            mainPillRect.left, mainPillRect.bottom,
+            intArrayOf(
+                Color.argb(80, 255, 255, 255),
+                Color.argb(20, 255, 255, 255),
+                Color.argb(0, 0, 0, 0)
+            ),
+            floatArrayOf(0f, 0.25f, 1f),
+            Shader.TileMode.CLAMP
+        )
 
         circleGlassPaint.shader = LinearGradient(
             circleRect.left, circleRect.top,
             circleRect.left, circleRect.bottom,
             intArrayOf(
-                Color.argb(210, 44, 50, 60),
-                Color.argb(230, 24, 28, 34),
-                Color.argb(245, 16, 19, 23)
+                Color.argb(110, 42, 48, 58),
+                Color.argb(140, 20, 24, 30),
+                Color.argb(160, 12, 14, 18)
             ),
             floatArrayOf(0f, 0.5f, 1f),
             Shader.TileMode.CLAMP
         )
-        circleBorderPaint.strokeWidth = 1.35f * dp
-        circleBorderPaint.shader = borderGradient
 
-        circleInnerRingPaint.strokeWidth = 1f * dp
-        circleInnerRingPaint.color = Color.argb(35, 255, 255, 255)
+        circleFrostSheenPaint.shader = LinearGradient(
+            circleRect.left, circleRect.top,
+            circleRect.right, circleRect.bottom,
+            intArrayOf(
+                Color.argb(50, 255, 255, 255),
+                Color.argb(15, 255, 255, 255),
+                Color.argb(40, 255, 255, 255)
+            ),
+            floatArrayOf(0f, 0.5f, 1f),
+            Shader.TileMode.CLAMP
+        )
+
+        circleInnerDiscPaint.color = Color.argb(65, 0, 0, 0)
+        circleInnerBorderPaint.strokeWidth = 1f * dp
+        circleInnerBorderPaint.color = Color.argb(45, 255, 255, 255)
+
+        circleBorderPaint.strokeWidth = 1.35f * dp
+        circleBorderPaint.shader = outerBorderPaint.shader
 
         textPaint.textSize = (pillHeight * 0.28f).coerceIn(28f * dp, 38f * dp)
     }
@@ -363,7 +415,8 @@ class GlassVolumeView @JvmOverloads constructor(
     private fun drawMainPill(canvas: Canvas) {
         val pillRadius = pillHeight / 2f
 
-        canvas.drawRoundRect(mainPillRect, pillRadius, pillRadius, pillGlassPaint)
+        canvas.drawRoundRect(mainPillRect, pillRadius, pillRadius, baseGlassPaint)
+        canvas.drawRoundRect(mainPillRect, pillRadius, pillRadius, frostSheenPaint)
 
         if (currentProgress > 0.005f) {
             canvas.save()
@@ -371,96 +424,150 @@ class GlassVolumeView @JvmOverloads constructor(
 
             val fillRight = mainPillRect.left + (mainPillRect.width() * currentProgress)
 
-            val fillShader = LinearGradient(
+            fillBodyPaint.shader = LinearGradient(
                 mainPillRect.left, mainPillRect.top,
                 mainPillRect.left, mainPillRect.bottom,
                 intArrayOf(
-                    Color.argb(125, 110, 125, 145),
-                    Color.argb(95, 75, 88, 105),
-                    Color.argb(70, 50, 60, 75)
+                    Color.argb(120, 50, 60, 75),
+                    Color.argb(85, 30, 36, 48),
+                    Color.argb(60, 15, 18, 25)
                 ),
-                floatArrayOf(0f, 0.45f, 1f),
+                floatArrayOf(0f, 0.5f, 1f),
                 Shader.TileMode.CLAMP
             )
-            fillPaint.shader = fillShader
 
             canvas.drawRect(
                 mainPillRect.left,
                 mainPillRect.top,
                 fillRight,
                 mainPillRect.bottom,
-                fillPaint
+                fillBodyPaint
             )
 
-            val bulge = (pillHeight * 0.35f).coerceAtMost(fillRight - mainPillRect.left)
-            crestPath.reset()
-            crestPath.moveTo(fillRight, mainPillRect.top)
-            crestPath.cubicTo(
-                fillRight + bulge * 0.65f, mainPillRect.top + pillHeight * 0.25f,
-                fillRight + bulge * 0.65f, mainPillRect.bottom - pillHeight * 0.25f,
+            val meniscusBulge = (pillHeight * 0.38f).coerceAtMost(fillRight - mainPillRect.left)
+            meniscusPath.reset()
+            meniscusPath.moveTo(fillRight, mainPillRect.top)
+            meniscusPath.cubicTo(
+                fillRight + meniscusBulge * 0.62f, mainPillRect.top + pillHeight * 0.25f,
+                fillRight + meniscusBulge * 0.62f, mainPillRect.bottom - pillHeight * 0.25f,
                 fillRight, mainPillRect.bottom
             )
-            crestPath.lineTo(mainPillRect.left, mainPillRect.bottom)
-            crestPath.lineTo(mainPillRect.left, mainPillRect.top)
-            crestPath.close()
+            meniscusPath.lineTo(mainPillRect.left, mainPillRect.bottom)
+            meniscusPath.lineTo(mainPillRect.left, mainPillRect.top)
+            meniscusPath.close()
 
-            canvas.drawPath(crestPath, fillPaint)
+            canvas.drawPath(meniscusPath, fillBodyPaint)
 
-            fillCrestHighlightPaint.strokeWidth = 2.2f * dp
-            val crestShader = LinearGradient(
+            meniscusStrokePaint.strokeWidth = 2f * dp
+            meniscusStrokePaint.shader = LinearGradient(
                 fillRight, mainPillRect.top,
                 fillRight, mainPillRect.bottom,
                 intArrayOf(
-                    Color.argb(220, 255, 255, 255),
-                    Color.argb(235, 175, 215, 255),
-                    Color.argb(140, 130, 185, 245),
-                    Color.argb(30, 255, 255, 255)
+                    Color.argb(255, 255, 255, 255),
+                    Color.argb(240, 140, 205, 255),
+                    Color.argb(180, 75, 160, 255),
+                    Color.argb(40, 255, 255, 255)
+                ),
+                floatArrayOf(0f, 0.25f, 0.65f, 1f),
+                Shader.TileMode.CLAMP
+            )
+
+            val meniscusStrokePath = Path()
+            meniscusStrokePath.moveTo(fillRight, mainPillRect.top)
+            meniscusStrokePath.cubicTo(
+                fillRight + meniscusBulge * 0.62f, mainPillRect.top + pillHeight * 0.25f,
+                fillRight + meniscusBulge * 0.62f, mainPillRect.bottom - pillHeight * 0.25f,
+                fillRight, mainPillRect.bottom
+            )
+            canvas.drawPath(meniscusStrokePath, meniscusStrokePaint)
+
+            val flareRadiusX = 26f * dp
+            val flareRadiusY = 16f * dp
+            val flareCenterX = fillRight - (4f * dp)
+            val flareCenterY = mainPillRect.top + (4f * dp)
+
+            crystalFlareFillPaint.shader = RadialGradient(
+                flareCenterX, flareCenterY,
+                flareRadiusX,
+                intArrayOf(
+                    Color.argb(235, 255, 255, 255),
+                    Color.argb(195, 215, 240, 255),
+                    Color.argb(120, 130, 200, 255),
+                    Color.argb(0, 130, 200, 255)
+                ),
+                floatArrayOf(0f, 0.35f, 0.75f, 1f),
+                Shader.TileMode.CLAMP
+            )
+
+            val flareRect = RectF(
+                flareCenterX - flareRadiusX,
+                flareCenterY - flareRadiusY,
+                flareCenterX + flareRadiusX,
+                flareCenterY + flareRadiusY
+            )
+            canvas.drawOval(flareRect, crystalFlareFillPaint)
+
+            crystalFlareStrokePaint.strokeWidth = 1.6f * dp
+            crystalFlareStrokePaint.shader = LinearGradient(
+                flareRect.left, flareRect.top,
+                flareRect.right, flareRect.bottom,
+                intArrayOf(
+                    Color.argb(255, 255, 255, 255),
+                    Color.argb(230, 90, 185, 255),
+                    Color.argb(160, 60, 150, 255),
+                    Color.TRANSPARENT
                 ),
                 floatArrayOf(0f, 0.3f, 0.7f, 1f),
                 Shader.TileMode.CLAMP
             )
-            fillCrestHighlightPaint.shader = crestShader
 
-            val strokeCrestPath = Path()
-            strokeCrestPath.moveTo(fillRight, mainPillRect.top)
-            strokeCrestPath.cubicTo(
-                fillRight + bulge * 0.65f, mainPillRect.top + pillHeight * 0.25f,
-                fillRight + bulge * 0.65f, mainPillRect.bottom - pillHeight * 0.25f,
-                fillRight, mainPillRect.bottom
-            )
-            canvas.drawPath(strokeCrestPath, fillCrestHighlightPaint)
+            flareArcPath.reset()
+            flareArcPath.arcTo(flareRect, 0f, 180f)
+            canvas.drawPath(flareArcPath, crystalFlareStrokePaint)
 
             canvas.restore()
         }
 
-        val upperReflectionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        val upperGlassReflectionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = LinearGradient(
                 mainPillRect.left, mainPillRect.top,
                 mainPillRect.right, mainPillRect.top,
                 intArrayOf(
                     Color.TRANSPARENT,
+                    Color.argb(65, 255, 255, 255),
+                    Color.argb(125, 255, 255, 255),
+                    Color.argb(175, 230, 245, 255),
+                    Color.argb(110, 255, 255, 255),
                     Color.argb(45, 255, 255, 255),
-                    Color.argb(70, 220, 240, 255),
-                    Color.argb(40, 255, 255, 255),
                     Color.TRANSPARENT
                 ),
-                floatArrayOf(0f, 0.35f, 0.55f, 0.75f, 1f),
+                floatArrayOf(0f, 0.25f, 0.45f, 0.55f, 0.65f, 0.85f, 1f),
                 Shader.TileMode.CLAMP
             )
             style = Paint.Style.STROKE
-            strokeWidth = 2f * dp
+            strokeWidth = 1.8f * dp
         }
         canvas.drawRoundRect(
-            mainPillRect.left + 1.5f * dp,
-            mainPillRect.top + 1.5f * dp,
-            mainPillRect.right - 1.5f * dp,
-            mainPillRect.bottom - 1.5f * dp,
-            pillRadius - 1.5f * dp,
-            pillRadius - 1.5f * dp,
-            upperReflectionPaint
+            mainPillRect.left + 1.2f * dp,
+            mainPillRect.top + 1.2f * dp,
+            mainPillRect.right - 1.2f * dp,
+            mainPillRect.bottom - 1.2f * dp,
+            pillRadius - 1.2f * dp,
+            pillRadius - 1.2f * dp,
+            upperGlassReflectionPaint
         )
 
-        canvas.drawRoundRect(mainPillRect, pillRadius, pillRadius, pillBorderPaint)
+        canvas.drawRoundRect(
+            mainPillRect.left + 1f * dp,
+            mainPillRect.top + 1f * dp,
+            mainPillRect.right - 1f * dp,
+            mainPillRect.bottom - 1f * dp,
+            pillRadius - 1f * dp,
+            pillRadius - 1f * dp,
+            innerBevelPaint
+        )
+
+        canvas.drawRoundRect(mainPillRect, pillRadius, pillRadius, outerBorderPaint)
 
         val iconSize = (pillHeight * 0.34f).toInt()
         val contentPaddingLeft = mainPillRect.left + (pillHeight * 0.42f)
@@ -486,7 +593,37 @@ class GlassVolumeView @JvmOverloads constructor(
         val radius = circleSize / 2f
 
         canvas.drawCircle(cx, cy, radius, circleGlassPaint)
-        canvas.drawCircle(cx, cy, radius * 0.70f, circleInnerRingPaint)
+        canvas.drawCircle(cx, cy, radius, circleFrostSheenPaint)
+
+        val innerRadius = radius * 0.70f
+        canvas.drawCircle(cx, cy, innerRadius, circleInnerDiscPaint)
+        canvas.drawCircle(cx, cy, innerRadius, circleInnerBorderPaint)
+
+        val circleUpperReflectionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = LinearGradient(
+                cx - innerRadius, cy - radius,
+                cx + innerRadius, cy - radius,
+                intArrayOf(
+                    Color.TRANSPARENT,
+                    Color.argb(140, 255, 255, 255),
+                    Color.argb(195, 255, 255, 255),
+                    Color.argb(140, 255, 255, 255),
+                    Color.TRANSPARENT
+                ),
+                floatArrayOf(0f, 0.3f, 0.5f, 0.7f, 1f),
+                Shader.TileMode.CLAMP
+            )
+            style = Paint.Style.STROKE
+            strokeWidth = 1.6f * dp
+        }
+        val circleInnerRect = RectF(
+            circleRect.left + 1.2f * dp,
+            circleRect.top + 1.2f * dp,
+            circleRect.right - 1.2f * dp,
+            circleRect.bottom - 1.2f * dp
+        )
+        canvas.drawArc(circleInnerRect, 200f, 140f, false, circleUpperReflectionPaint)
+
         canvas.drawCircle(cx, cy, radius, circleBorderPaint)
 
         val iconSize = (circleSize * 0.42f).toInt()
@@ -524,7 +661,6 @@ class GlassVolumeView @JvmOverloads constructor(
             }
         }
         progressAnimator = animator
-        animator.start()
     }
 }
 `

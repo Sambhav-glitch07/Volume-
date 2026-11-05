@@ -35,6 +35,7 @@ export default function App() {
   const [isHudVisible, setIsHudVisible] = useState<boolean>(true);
   const [autoDismissEnabled, setAutoDismissEnabled] = useState<boolean>(true);
   const [secondsRemaining, setSecondsRemaining] = useState<number>(2.0);
+  const [tvBackdrop, setTvBackdrop] = useState<'reference' | 'movie' | 'sports' | 'dark'>('reference');
 
   // View state
   const [activeTab, setActiveTab] = useState<'simulator' | 'code' | 'tv-setup' | 'guide'>('simulator');
@@ -310,81 +311,172 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* TV Screen Backdrop Selector */}
+                  <div className="bg-[#0e1117] px-4 py-2 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <span className="text-slate-400 font-medium">TV Background:</span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <button
+                        onClick={() => setTvBackdrop('reference')}
+                        className={`px-2.5 py-1 rounded text-[11px] font-medium transition cursor-pointer ${
+                          tvBackdrop === 'reference'
+                            ? 'bg-sky-500/20 text-sky-300 border border-sky-400/50 shadow-sm'
+                            : 'bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-800'
+                        }`}
+                      >
+                        Reference Photo (Speaker Mesh)
+                      </button>
+                      <button
+                        onClick={() => setTvBackdrop('movie')}
+                        className={`px-2.5 py-1 rounded text-[11px] font-medium transition cursor-pointer ${
+                          tvBackdrop === 'movie'
+                            ? 'bg-sky-500/20 text-sky-300 border border-sky-400/50 shadow-sm'
+                            : 'bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-800'
+                        }`}
+                      >
+                        4K Cinema HDR
+                      </button>
+                      <button
+                        onClick={() => setTvBackdrop('sports')}
+                        className={`px-2.5 py-1 rounded text-[11px] font-medium transition cursor-pointer ${
+                          tvBackdrop === 'sports'
+                            ? 'bg-sky-500/20 text-sky-300 border border-sky-400/50 shadow-sm'
+                            : 'bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-800'
+                        }`}
+                      >
+                        Sports Stadium
+                      </button>
+                      <button
+                        onClick={() => setTvBackdrop('dark')}
+                        className={`px-2.5 py-1 rounded text-[11px] font-medium transition cursor-pointer ${
+                          tvBackdrop === 'dark'
+                            ? 'bg-sky-500/20 text-sky-300 border border-sky-400/50 shadow-sm'
+                            : 'bg-slate-800/60 text-slate-400 hover:text-slate-200 border border-slate-800'
+                        }`}
+                      >
+                        OLED Studio Dark
+                      </button>
+                    </div>
+                  </div>
+
                   {/* TV Screen Contents */}
                   <div 
-                    className="relative min-h-[380px] sm:min-h-[460px] flex flex-col items-center justify-center p-6 bg-cover bg-center"
+                    className="relative min-h-[380px] sm:min-h-[460px] flex flex-col items-center justify-center p-6 bg-cover bg-center overflow-hidden transition-all duration-500"
                     style={{
-                      backgroundImage: `radial-gradient(ellipse at 50% 30%, rgba(30, 41, 59, 0.45) 0%, rgba(10, 14, 20, 0.95) 100%), url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=1920&q=80')`,
-                      backgroundBlendMode: 'multiply'
+                      backgroundImage: tvBackdrop === 'reference' 
+                        ? `url('/assets/aistudio/1793893375822_4688efe7.jpg')`
+                        : tvBackdrop === 'movie'
+                        ? `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?auto=format&fit=crop&w=1920&q=80')`
+                        : tvBackdrop === 'sports'
+                        ? `linear-gradient(rgba(0,0,0,0.25), rgba(0,0,0,0.25)), url('https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=1920&q=80')`
+                        : `radial-gradient(ellipse at 50% 30%, #1a2230 0%, #080b10 100%)`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center'
                     }}
                   >
                     {/* Background subtle movie player UI to show real overlay transparency */}
-                    <div className="absolute inset-0 pointer-events-none p-6 flex flex-col justify-between opacity-35">
-                      <div className="flex justify-between items-center text-xs font-mono text-slate-300">
+                    <div className="absolute inset-0 pointer-events-none p-6 flex flex-col justify-between opacity-40">
+                      <div className="flex justify-between items-center text-xs font-mono text-white drop-shadow">
                         <span>HDMI 1 • TCL Home Cinema 4K</span>
                         <span>Dolby Vision • Atmos</span>
                       </div>
-                      <div className="text-center font-mono text-xs text-slate-400">
-                        [Playing Background Media - Overlay renders directly on top without stopping video]
+                      <div className="text-center font-mono text-xs text-white/90 drop-shadow">
+                        {tvBackdrop === 'reference'
+                          ? '[1:1 Reference Background — Notice speaker mesh texture visible through the glass!]'
+                          : '[Playing Background Media — Overlay renders directly on top without stopping video]'}
                       </div>
                     </div>
 
-                    {/* THE EXACT GLASS VOLUME HUD */}
+                    {/* THE EXACT 1:1 GLASS VOLUME HUD */}
                     <div
-                      className={`relative z-20 flex items-center gap-4 transition-all duration-300 ease-out ${
+                      className={`relative z-20 flex items-center gap-4 sm:gap-5 transition-all duration-300 ease-out ${
                         isHudVisible 
                           ? 'opacity-100 scale-100 translate-y-0' 
                           : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
                       }`}
                     >
-                      {/* Main Pill Slider */}
+                      {/* Main Pill Slider Container */}
                       <div 
-                        className="relative w-[340px] sm:w-[480px] h-[92px] sm:h-[124px] rounded-full overflow-hidden flex items-center shadow-2xl transition-all"
+                        className="relative w-[340px] sm:w-[480px] h-[92px] sm:h-[124px] rounded-full overflow-hidden flex items-center transition-all select-none"
                         style={{
-                          backgroundColor: 'rgba(26, 30, 36, 0.72)',
-                          backdropFilter: 'blur(28px) saturate(160%)',
-                          WebkitBackdropFilter: 'blur(28px) saturate(160%)',
-                          border: '1.25px solid rgba(255, 255, 255, 0.28)',
-                          boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.75), inset 0 1px 1px 0 rgba(255, 255, 255, 0.35), inset 0 -1px 1px 0 rgba(0, 0, 0, 0.4)'
+                          backgroundColor: 'rgba(28, 34, 46, 0.38)',
+                          backdropFilter: 'blur(22px) saturate(190%) contrast(110%)',
+                          WebkitBackdropFilter: 'blur(22px) saturate(190%) contrast(110%)',
+                          border: '1.35px solid rgba(255, 255, 255, 0.42)',
+                          boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.75), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.7), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4)'
                         }}
                       >
-                        {/* Upper subtle glass lens-flare reflection arc */}
+                        {/* A. Frosted glass ambient dispersion sheen across whole pill */}
                         <div 
-                          className="absolute inset-x-8 top-0 h-[2px] pointer-events-none"
+                          className="absolute inset-0 pointer-events-none"
                           style={{
-                            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 30%, rgba(220,240,255,0.7) 50%, rgba(255,255,255,0.4) 70%, transparent 100%)'
+                            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.03) 35%, rgba(255, 255, 255, 0.14) 75%, rgba(255, 255, 255, 0.04) 100%)'
                           }}
                         />
 
-                        {/* Active Volume Fill with curved meniscus edge */}
+                        {/* B. Top Specular Glass Reflection Arc along upper rim */}
+                        <div 
+                          className="absolute inset-x-8 top-0 h-[2px] pointer-events-none"
+                          style={{
+                            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 15%, rgba(255,255,255,0.85) 45%, rgba(220,240,255,1) 55%, rgba(255,255,255,0.85) 65%, rgba(255,255,255,0.25) 85%, transparent 100%)'
+                          }}
+                        />
+
+                        {/* C. Active Volume Fill with Curved Meniscus & Translucent Smoky Body */}
                         <div 
                           className="absolute left-0 top-0 bottom-0 transition-all duration-200 ease-out"
                           style={{
                             width: `${isMuted ? 0 : volume}%`,
-                            background: 'linear-gradient(180deg, rgba(125, 140, 160, 0.55) 0%, rgba(85, 98, 115, 0.52) 48%, rgba(60, 72, 88, 0.58) 100%)'
+                            background: 'linear-gradient(180deg, rgba(50, 60, 75, 0.48) 0%, rgba(30, 36, 48, 0.38) 50%, rgba(15, 18, 25, 0.52) 100%)'
                           }}
                         >
-                          {/* Curved liquid meniscus crest at the leading edge (exact reference reproduction!) */}
+                          {/* Curved liquid meniscus crest at leading edge */}
                           <div 
                             className="absolute right-0 top-0 bottom-0 w-8 sm:w-12 pointer-events-none translate-x-1/2"
                             style={{
-                              background: 'radial-gradient(ellipse 100% 70% at 0% 50%, rgba(125, 140, 160, 0.55) 60%, transparent 100%)'
+                              background: 'radial-gradient(ellipse 100% 70% at 0% 50%, rgba(50, 60, 75, 0.48) 60%, transparent 100%)'
                             }}
                           />
 
-                          {/* Glowing Specular Blue-White Crystal Highlight along the leading edge */}
+                          {/* Glowing Specular Blue-White Caustic Highlight along leading edge */}
                           <div 
-                            className="absolute -right-[1.5px] top-0 bottom-0 w-[3px] pointer-events-none rounded-full"
+                            className="absolute -right-[1.5px] top-0 bottom-0 w-[2.5px] pointer-events-none rounded-full"
                             style={{
-                              background: 'linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(187,225,250,0.95) 30%, rgba(140,195,250,0.85) 65%, rgba(255,255,255,0.2) 100%)',
-                              boxShadow: '0 0 16px 2px rgba(165, 216, 255, 0.65), 0 0 4px 1px rgba(255, 255, 255, 0.8)'
+                              background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(186,230,253,0.95) 25%, rgba(96,165,250,0.85) 65%, rgba(255,255,255,0.25) 100%)',
+                              boxShadow: '0 0 16px 2px rgba(125, 211, 252, 0.85), 0 0 4px 1px rgba(255, 255, 255, 1)'
                             }}
                           />
                         </div>
 
-                        {/* Left section: Speaker Icon & Realtime Volume Number */}
+                        {/* D. THE ICONIC TOP SPECULAR CRYSTAL FLARE / REFRACTION BUBBLE (Exact 1:1 Match!) */}
+                        {!isMuted && volume > 4 && (
+                          <div 
+                            className="absolute pointer-events-none z-20 transition-all duration-200 ease-out"
+                            style={{
+                              left: `${Math.min(94, Math.max(6, volume))}%`,
+                              top: '-3px',
+                              transform: 'translateX(-50%)',
+                              width: '56px',
+                              height: '32px'
+                            }}
+                          >
+                            {/* Radial crystal glow core */}
+                            <div 
+                              className="absolute inset-0 rounded-[100%]"
+                              style={{
+                                background: 'radial-gradient(ellipse at 50% 25%, rgba(255,255,255,1) 0%, rgba(215,240,255,0.92) 25%, rgba(125,211,252,0.65) 60%, transparent 100%)',
+                                filter: 'blur(0.5px)'
+                              }}
+                            />
+                            {/* Crisp glowing cyan caustic arc */}
+                            <div 
+                              className="absolute inset-x-1 top-0 h-4 rounded-full border-b-[2px] border-sky-300 drop-shadow-[0_0_8px_rgba(125,211,252,0.95)]"
+                            />
+                          </div>
+                        )}
+
+                        {/* E. Left section: Speaker Icon & Realtime Volume Number */}
                         <div className="relative z-10 flex items-center gap-3.5 pl-6 sm:pl-9 select-none">
-                          <div className="text-white drop-shadow">
+                          <div className="text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
                             {isMuted || volume === 0 ? (
                               <VolumeX className="w-7 h-7 sm:w-8 sm:h-8 stroke-[2.2]" />
                             ) : volume < 40 ? (
@@ -393,7 +485,7 @@ export default function App() {
                               <Volume2 className="w-7 h-7 sm:w-8 sm:h-8 stroke-[2.2]" />
                             )}
                           </div>
-                          <span className="text-white font-medium text-2xl sm:text-3xl tracking-tight drop-shadow font-sans">
+                          <span className="text-white font-medium text-2xl sm:text-3xl tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)] font-sans">
                             {isMuted ? 'MUTE' : volume}
                           </span>
                         </div>
@@ -401,22 +493,42 @@ export default function App() {
 
                       {/* Right Separate Circular Glass Button */}
                       <div 
-                        className="relative w-[92px] sm:w-[124px] h-[92px] sm:h-[124px] rounded-full flex items-center justify-center shadow-2xl transition-all"
+                        className="relative w-[92px] sm:w-[124px] h-[92px] sm:h-[124px] rounded-full flex items-center justify-center transition-all select-none"
                         style={{
-                          backgroundColor: 'rgba(26, 30, 36, 0.72)',
-                          backdropFilter: 'blur(28px) saturate(160%)',
-                          WebkitBackdropFilter: 'blur(28px) saturate(160%)',
-                          border: '1.25px solid rgba(255, 255, 255, 0.28)',
-                          boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.75), inset 0 1px 1px 0 rgba(255, 255, 255, 0.35)'
+                          backgroundColor: 'rgba(28, 34, 46, 0.38)',
+                          backdropFilter: 'blur(22px) saturate(190%) contrast(110%)',
+                          WebkitBackdropFilter: 'blur(22px) saturate(190%) contrast(110%)',
+                          border: '1.35px solid rgba(255, 255, 255, 0.42)',
+                          boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.75), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.7)'
                         }}
                       >
-                        {/* Subtle inner concentric ring disc */}
+                        {/* Frosted ambient glass dispersion sheen */}
                         <div 
-                          className="absolute inset-3 sm:inset-4 rounded-full border border-white/10 pointer-events-none"
+                          className="absolute inset-0 rounded-full pointer-events-none"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 40%, rgba(255, 255, 255, 0.12) 80%, rgba(255, 255, 255, 0.04) 100%)'
+                          }}
+                        />
+
+                        {/* Subtle inner concentric dark glass disc */}
+                        <div 
+                          className="absolute inset-3 sm:inset-4 rounded-full pointer-events-none"
+                          style={{
+                            backgroundColor: 'rgba(0, 0, 0, 0.28)',
+                            border: '1px solid rgba(255, 255, 255, 0.18)'
+                          }}
+                        />
+
+                        {/* Top specular reflection arc on circle */}
+                        <div 
+                          className="absolute inset-x-4 top-0 h-[2px] pointer-events-none"
+                          style={{
+                            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.8) 50%, transparent 100%)'
+                          }}
                         />
 
                         {/* AirPlay / Audio Output Symbol */}
-                        <div className="relative z-10 text-white flex items-center justify-center">
+                        <div className="relative z-10 text-white flex items-center justify-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
                           <svg className="w-7 h-7 sm:w-9 sm:h-9" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             {/* Upward beacon triangle */}
                             <path d="M12 14.5L7.5 20H16.5L12 14.5Z" fill="white" />
@@ -810,43 +922,143 @@ export default function App() {
                   : 'Accessibility Service is currently OFF. Click below to enable Sambhav Glass Volume so it can intercept remote volume keys.'}
               </p>
 
-              {/* Live Preview Card */}
-              <div className="bg-[#1A1D24] border border-[#2C3240] rounded-2xl p-6 flex flex-col items-center">
-                <span className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-6">
-                  EXACT REFERENCE RENDERING (Press D-Pad Left/Right to Test Response)
+              {/* Live Preview Card with 1:1 Photorealistic Glass HUD */}
+              <div className="bg-[#141820] border border-[#242c3d] rounded-2xl p-6 sm:p-8 flex flex-col items-center overflow-hidden">
+                <span className="text-xs font-bold uppercase tracking-widest text-sky-400 mb-6 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-sky-400" />
+                  1:1 Exact Frosted Glass Rendering (Press D-Pad to Test)
                 </span>
 
-                {/* Rendered View Component */}
-                <div className="flex items-center gap-4">
-                  <div 
-                    className="w-[320px] sm:w-[460px] h-[88px] sm:h-[116px] rounded-full flex items-center shadow-2xl relative overflow-hidden"
-                    style={{
-                      backgroundColor: 'rgba(32, 36, 44, 0.85)',
-                      border: '1.25px solid rgba(255, 255, 255, 0.3)'
-                    }}
-                  >
+                {/* Glass HUD over translucent textured backdrop */}
+                <div 
+                  className="w-full max-w-2xl py-8 px-4 rounded-2xl flex items-center justify-center relative overflow-hidden bg-cover bg-center"
+                  style={{
+                    backgroundImage: `linear-gradient(rgba(10,14,20,0.5), rgba(10,14,20,0.7)), url('/assets/aistudio/1793893375822_4688efe7.jpg')`
+                  }}
+                >
+                  <div className="flex items-center gap-4 sm:gap-5 select-none relative z-10">
+                    {/* Main Pill Slider */}
                     <div 
-                      className="absolute left-0 top-0 bottom-0 bg-slate-600/50"
-                      style={{ width: `${volume}%` }}
+                      className="relative w-[320px] sm:w-[440px] h-[88px] sm:h-[116px] rounded-full overflow-hidden flex items-center transition-all"
+                      style={{
+                        backgroundColor: 'rgba(28, 34, 46, 0.38)',
+                        backdropFilter: 'blur(22px) saturate(190%) contrast(110%)',
+                        WebkitBackdropFilter: 'blur(22px) saturate(190%) contrast(110%)',
+                        border: '1.35px solid rgba(255, 255, 255, 0.42)',
+                        boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.75), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.7), inset 0 -1px 2px 0 rgba(0, 0, 0, 0.4)'
+                      }}
                     >
-                      <div className="absolute right-0 top-0 bottom-0 w-8 bg-slate-600/40 rounded-r-full translate-x-1/2" />
-                      <div className="absolute right-0 top-0 bottom-0 w-[2.5px] bg-gradient-to-b from-white via-sky-200 to-sky-400 shadow-[0_0_12px_rgba(165,216,255,0.8)]" />
-                    </div>
-                    <div className="relative z-10 flex items-center gap-3 pl-8 text-white font-medium text-2xl">
-                      <Volume2 className="w-7 h-7" />
-                      <span>{volume}</span>
-                    </div>
-                  </div>
+                      {/* Frosted ambient dispersion */}
+                      <div 
+                        className="absolute inset-0 pointer-events-none"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.03) 35%, rgba(255, 255, 255, 0.14) 75%, rgba(255, 255, 255, 0.04) 100%)'
+                        }}
+                      />
 
-                  <div 
-                    className="w-[88px] sm:w-[116px] h-[88px] sm:h-[116px] rounded-full flex items-center justify-center shadow-2xl relative"
-                    style={{
-                      backgroundColor: 'rgba(32, 36, 44, 0.85)',
-                      border: '1.25px solid rgba(255, 255, 255, 0.3)'
-                    }}
-                  >
-                    <div className="absolute inset-3 rounded-full border border-white/10" />
-                    <Share2 className="w-8 h-8 text-white rotate-90" />
+                      {/* Top Specular Rim Reflection */}
+                      <div 
+                        className="absolute inset-x-8 top-0 h-[2px] pointer-events-none"
+                        style={{
+                          background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 15%, rgba(255,255,255,0.85) 45%, rgba(220,240,255,1) 55%, rgba(255,255,255,0.85) 65%, rgba(255,255,255,0.25) 85%, transparent 100%)'
+                        }}
+                      />
+
+                      {/* Active Volume Fill with Curved Meniscus */}
+                      <div 
+                        className="absolute left-0 top-0 bottom-0 transition-all duration-200 ease-out"
+                        style={{
+                          width: `${volume}%`,
+                          background: 'linear-gradient(180deg, rgba(50, 60, 75, 0.48) 0%, rgba(30, 36, 48, 0.38) 50%, rgba(15, 18, 25, 0.52) 100%)'
+                        }}
+                      >
+                        <div 
+                          className="absolute right-0 top-0 bottom-0 w-8 sm:w-12 pointer-events-none translate-x-1/2"
+                          style={{
+                            background: 'radial-gradient(ellipse 100% 70% at 0% 50%, rgba(50, 60, 75, 0.48) 60%, transparent 100%)'
+                          }}
+                        />
+                        <div 
+                          className="absolute -right-[1.5px] top-0 bottom-0 w-[2.5px] pointer-events-none rounded-full"
+                          style={{
+                            background: 'linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(186,230,253,0.95) 25%, rgba(96,165,250,0.85) 65%, rgba(255,255,255,0.25) 100%)',
+                            boxShadow: '0 0 16px 2px rgba(125, 211, 252, 0.85), 0 0 4px 1px rgba(255, 255, 255, 1)'
+                          }}
+                        />
+                      </div>
+
+                      {/* Top Specular Crystal Refraction Bubble */}
+                      {volume > 4 && (
+                        <div 
+                          className="absolute pointer-events-none z-20 transition-all duration-200 ease-out"
+                          style={{
+                            left: `${Math.min(94, Math.max(6, volume))}%`,
+                            top: '-3px',
+                            transform: 'translateX(-50%)',
+                            width: '52px',
+                            height: '30px'
+                          }}
+                        >
+                          <div 
+                            className="absolute inset-0 rounded-[100%]"
+                            style={{
+                              background: 'radial-gradient(ellipse at 50% 25%, rgba(255,255,255,1) 0%, rgba(215,240,255,0.92) 25%, rgba(125,211,252,0.65) 60%, transparent 100%)',
+                              filter: 'blur(0.5px)'
+                            }}
+                          />
+                          <div 
+                            className="absolute inset-x-1 top-0 h-4 rounded-full border-b-[2px] border-sky-300 drop-shadow-[0_0_8px_rgba(125,211,252,0.95)]"
+                          />
+                        </div>
+                      )}
+
+                      {/* Left section: Speaker Icon & Number */}
+                      <div className="relative z-10 flex items-center gap-3 pl-6 sm:pl-8 text-white">
+                        <Volume2 className="w-6 h-6 sm:w-7 sm:h-7 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" />
+                        <span className="font-medium text-2xl sm:text-3xl tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+                          {volume}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Right Circular Glass Button */}
+                    <div 
+                      className="relative w-[88px] sm:w-[116px] h-[88px] sm:h-[116px] rounded-full flex items-center justify-center transition-all select-none"
+                      style={{
+                        backgroundColor: 'rgba(28, 34, 46, 0.38)',
+                        backdropFilter: 'blur(22px) saturate(190%) contrast(110%)',
+                        WebkitBackdropFilter: 'blur(22px) saturate(190%) contrast(110%)',
+                        border: '1.35px solid rgba(255, 255, 255, 0.42)',
+                        boxShadow: '0 24px 60px -12px rgba(0, 0, 0, 0.75), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.7)'
+                      }}
+                    >
+                      <div 
+                        className="absolute inset-0 rounded-full pointer-events-none"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 40%, rgba(255, 255, 255, 0.12) 80%, rgba(255, 255, 255, 0.04) 100%)'
+                        }}
+                      />
+                      <div 
+                        className="absolute inset-3 rounded-full pointer-events-none"
+                        style={{
+                          backgroundColor: 'rgba(0, 0, 0, 0.28)',
+                          border: '1px solid rgba(255, 255, 255, 0.18)'
+                        }}
+                      />
+                      <div 
+                        className="absolute inset-x-3 top-0 h-[2px] pointer-events-none"
+                        style={{
+                          background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.8) 50%, transparent 100%)'
+                        }}
+                      />
+                      <div className="relative z-10 text-white flex items-center justify-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 14.5L7.5 20H16.5L12 14.5Z" fill="white" />
+                          <path d="M8.5 12.5C7.2 11.2 6.5 9.4 6.5 7.5C6.5 4.5 9 2 12 2C15 2 17.5 4.5 17.5 7.5C17.5 9.4 16.8 11.2 15.5 12.5" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+                          <path d="M5.2 14.8C3.2 12.8 2 10.2 2 7.5C2 2 6.5 -0.5 12 -0.5C17.5 -0.5 22 2 22 7.5C22 10.2 20.8 12.8 18.8 14.8" stroke="white" strokeWidth="1.8" strokeLinecap="round" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
