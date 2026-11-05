@@ -1,8 +1,8 @@
-package in.sambhav.glassvolume
+package `in`.sambhav.glassvolume
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
-import android.media.AudioManager
 import android.os.Bundle
 import android.provider.Settings
 import android.view.KeyEvent
@@ -12,8 +12,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import in.sambhav.glassvolume.ui.GlassVolumeView
-import in.sambhav.glassvolume.util.ServiceUtils
+import `in`.sambhav.glassvolume.ui.GlassVolumeView
+import `in`.sambhav.glassvolume.util.ServiceUtils
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var livePreviewSlider: GlassVolumeView
     private lateinit var tvLivePreviewHint: TextView
 
-    private var previewVolume = 52
+    private var previewVolume: Int = 52
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,23 +41,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
-        tvStatusBadge = findViewById(R.id.tvStatusBadge)
-        tvStatusDescription = findViewById(R.id.tvStatusDescription)
-        btnEnableService = findViewById(R.id.btnEnableService)
-        btnTestOverlay = findViewById(R.id.btnTestOverlay)
-        btnTclDiagnostics = findViewById(R.id.btnTclDiagnostics)
-        livePreviewSlider = findViewById(R.id.livePreviewSlider)
-        tvLivePreviewHint = findViewById(R.id.tvLivePreviewHint)
+        tvStatusBadge = findViewById<TextView>(R.id.tvStatusBadge)
+        tvStatusDescription = findViewById<TextView>(R.id.tvStatusDescription)
+        btnEnableService = findViewById<Button>(R.id.btnEnableService)
+        btnTestOverlay = findViewById<Button>(R.id.btnTestOverlay)
+        btnTclDiagnostics = findViewById<Button>(R.id.btnTclDiagnostics)
+        livePreviewSlider = findViewById<GlassVolumeView>(R.id.livePreviewSlider)
+        tvLivePreviewHint = findViewById<TextView>(R.id.tvLivePreviewHint)
 
-        // Initial preview matches the visual reference exactly
         livePreviewSlider.setVolume(previewVolume, 100, muted = false, animate = false)
-
-        // Make buttons default focused for TV remote D-Pad
         btnEnableService.requestFocus()
     }
 
     private fun setupListeners() {
-        btnEnableService.setOnClickListener {
+        btnEnableService.setOnClickListener { _: View ->
             try {
                 val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -72,12 +69,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        btnTestOverlay.setOnClickListener {
+        btnTestOverlay.setOnClickListener { _: View ->
             if (GlassVolumeService.isServiceRunning) {
                 GlassVolumeService.triggerTestOverlay(previewVolume)
                 Toast.makeText(this, "Showing TV Overlay for 2 seconds", Toast.LENGTH_SHORT).show()
             } else {
-                // If service is not enabled yet, pulse the in-app preview and remind user
                 livePreviewSlider.setVolume((previewVolume + 10).coerceAtMost(100), 100, muted = false, animate = true)
                 Toast.makeText(
                     this,
@@ -87,7 +83,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        btnTclDiagnostics.setOnClickListener {
+        btnTclDiagnostics.setOnClickListener { _: View ->
             showTclDiagnosticsDialog()
         }
     }
@@ -115,7 +111,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showTclDiagnosticsDialog() {
-        AlertDialog.Builder(this, R.style.Theme_AppCompat_Dialog_Alert)
+        AlertDialog.Builder(this, androidx.appcompat.R.style.Theme_AppCompat_Dialog_Alert)
             .setTitle(R.string.tcl_diag_title)
             .setMessage(
                 "TCL Android TV Specific Details:\n\n" +
@@ -128,13 +124,10 @@ class MainActivity : AppCompatActivity() {
                 "3. REMOVAL: To restore default TV behavior at any time, toggle off Sambhav Glass Volume in " +
                 "Settings > Device Preferences > Accessibility."
             )
-            .setPositiveButton("OK") { d, _ -> d.dismiss() }
+            .setPositiveButton("OK") { dialog: DialogInterface, _: Int -> dialog.dismiss() }
             .show()
     }
 
-    /**
-     * Allows user to test the volume slider inside the app using TV Remote D-Pad Left/Right
-     */
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_LEFT -> {
@@ -149,7 +142,6 @@ class MainActivity : AppCompatActivity() {
             }
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (GlassVolumeService.isServiceRunning) {
-                    // Let the service handle it
                     return super.onKeyDown(keyCode, event)
                 } else {
                     previewVolume = (previewVolume + 5).coerceAtMost(100)

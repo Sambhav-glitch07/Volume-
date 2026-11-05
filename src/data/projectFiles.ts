@@ -121,11 +121,9 @@ dependencies {
     filename: 'AndroidManifest.xml',
     category: 'App Gradle & Manifest',
     language: 'xml',
-    description: 'Declares TV Leanback launcher, Accessibility Service with BIND_ACCESSIBILITY_SERVICE, and audio permissions.',
+    description: 'Declares TV Leanback launcher, Accessibility Service, and permissions without deprecated package attribute.',
     content: `<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="in.sambhav.glassvolume">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Leanback TV Support -->
     <uses-feature
@@ -152,7 +150,7 @@ dependencies {
 
         <!-- Main TV Dashboard / Activation Screen -->
         <activity
-            android:name=".MainActivity"
+            android:name="in.sambhav.glassvolume.MainActivity"
             android:exported="true"
             android:screenOrientation="landscape"
             android:configChanges="orientation|screenSize|screenLayout|keyboard|keyboardHidden|navigation">
@@ -165,7 +163,7 @@ dependencies {
 
         <!-- Core Accessibility Service for Key Interception & Glass Overlay -->
         <service
-            android:name=".GlassVolumeService"
+            android:name="in.sambhav.glassvolume.GlassVolumeService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="true">
             <intent-filter>
@@ -205,7 +203,7 @@ dependencies {
     category: 'Kotlin Source',
     language: 'kotlin',
     description: 'Custom Canvas view implementing the exact Apple-style frosted glass volume HUD with specular blue-white meniscus refraction.',
-    content: `package in.sambhav.glassvolume.ui
+    content: `package \`in\`.sambhav.glassvolume.ui
 
 import android.animation.ValueAnimator
 import android.content.Context
@@ -217,37 +215,30 @@ import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
-import in.sambhav.glassvolume.R
+import \`in\`.sambhav.glassvolume.R
 
-/**
- * Custom Canvas-rendered Apple-style Frosted Glass Volume HUD.
- * Reproduces the exact visual reference:
- *  - Left: Pill-shaped dark translucent glass volume slider with animated fill,
- *          speaker icon, and real-time volume number.
- *  - Right: Separate circular glass button with audio output (AirPlay) symbol.
- *  - Crystal specular highlight and subtle refraction along the fill boundary.
- */
 class GlassVolumeView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    private var currentProgress = 0.52f
-    private var targetProgress = 0.52f
-    private var displayedVolume = 52
-    private var isMuted = false
+    private var currentProgress: Float = 0.52f
+    private var targetProgress: Float = 0.52f
+    private var displayedVolume: Int = 52
+    private var isMuted: Boolean = false
 
     private var progressAnimator: ValueAnimator? = null
 
-    private var pillWidth = 0f
-    private var pillHeight = 0f
-    private var circleSize = 0f
-    private var gap = 0f
+    private var pillWidth: Float = 0f
+    private var pillHeight: Float = 0f
+    private var circleSize: Float = 0f
+    private var gap: Float = 0f
 
     private val mainPillRect = RectF()
     private val circleRect = RectF()
@@ -274,10 +265,10 @@ class GlassVolumeView @JvmOverloads constructor(
         typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
     }
 
-    private val speakerDrawable = ContextCompat.getDrawable(context, R.drawable.ic_speaker)
-    private val outputDrawable = ContextCompat.getDrawable(context, R.drawable.ic_audio_output)
+    private val speakerDrawable: Drawable? = ContextCompat.getDrawable(context, R.drawable.ic_speaker)
+    private val outputDrawable: Drawable? = ContextCompat.getDrawable(context, R.drawable.ic_audio_output)
 
-    private val dp = resources.displayMetrics.density
+    private val dp: Float = resources.displayMetrics.density
 
     init {
         setLayerType(LAYER_TYPE_HARDWARE, null)
@@ -289,11 +280,11 @@ class GlassVolumeView @JvmOverloads constructor(
     }
 
     private fun recalculateLayout(w: Float, h: Float) {
-        if (w <= 0 || h <= 0) return
+        if (w <= 0f || h <= 0f) return
 
         gap = 18f * dp
-        val totalAvailableWidth = w - paddingLeft - paddingRight
-        val totalAvailableHeight = h - paddingTop - paddingBottom
+        val totalAvailableWidth = w - paddingLeft.toFloat() - paddingRight.toFloat()
+        val totalAvailableHeight = h - paddingTop.toFloat() - paddingBottom.toFloat()
 
         val compHeight = totalAvailableHeight.coerceAtMost(128f * dp)
         pillHeight = compHeight
@@ -363,7 +354,7 @@ class GlassVolumeView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        if (pillWidth <= 0 || pillHeight <= 0) return
+        if (pillWidth <= 0f || pillHeight <= 0f) return
 
         drawMainPill(canvas)
         drawCircleButton(canvas)
@@ -475,7 +466,7 @@ class GlassVolumeView @JvmOverloads constructor(
         val contentPaddingLeft = mainPillRect.left + (pillHeight * 0.42f)
         val centerY = mainPillRect.centerY()
 
-        speakerDrawable?.let { icon ->
+        speakerDrawable?.let { icon: Drawable ->
             val iconTop = (centerY - iconSize / 2f).toInt()
             val iconLeft = contentPaddingLeft.toInt()
             icon.setBounds(iconLeft, iconTop, iconLeft + iconSize, iconTop + iconSize)
@@ -484,7 +475,7 @@ class GlassVolumeView @JvmOverloads constructor(
         }
 
         val textString = if (isMuted) "MUTE" else displayedVolume.toString()
-        val textX = contentPaddingLeft + iconSize + (14f * dp)
+        val textX = contentPaddingLeft + iconSize.toFloat() + (14f * dp)
         val textBaseline = centerY - ((textPaint.descent() + textPaint.ascent()) / 2f)
         canvas.drawText(textString, textX, textBaseline, textPaint)
     }
@@ -499,7 +490,7 @@ class GlassVolumeView @JvmOverloads constructor(
         canvas.drawCircle(cx, cy, radius, circleBorderPaint)
 
         val iconSize = (circleSize * 0.42f).toInt()
-        outputDrawable?.let { icon ->
+        outputDrawable?.let { icon: Drawable ->
             val left = (cx - iconSize / 2f).toInt()
             val top = (cy - iconSize / 2f).toInt()
             icon.setBounds(left, top, left + iconSize, top + iconSize)
@@ -524,15 +515,16 @@ class GlassVolumeView @JvmOverloads constructor(
         }
 
         progressAnimator?.cancel()
-        progressAnimator = ValueAnimator.ofFloat(currentProgress, targetProgress).apply {
+        val animator = ValueAnimator.ofFloat(currentProgress, targetProgress).apply {
             duration = 180L
             interpolator = DecelerateInterpolator(1.5f)
-            addUpdateListener { anim ->
-                currentProgress = anim.animatedValue as Float
+            addUpdateListener { anim: ValueAnimator ->
+                currentProgress = (anim.animatedValue as? Float) ?: targetProgress
                 invalidate()
             }
-            start()
         }
+        progressAnimator = animator
+        animator.start()
     }
 }
 `
@@ -543,7 +535,7 @@ class GlassVolumeView @JvmOverloads constructor(
     category: 'Kotlin Source',
     language: 'kotlin',
     description: 'Accessibility Service intercepting TV remote volume keys, silencing stock UI, and displaying overlay.',
-    content: `package in.sambhav.glassvolume
+    content: `package \`in\`.sambhav.glassvolume
 
 import android.accessibilityservice.AccessibilityService
 import android.animation.Animator
@@ -567,16 +559,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
-import in.sambhav.glassvolume.ui.GlassVolumeView
+import \`in\`.sambhav.glassvolume.ui.GlassVolumeView
 
 class GlassVolumeService : AccessibilityService() {
 
     companion object {
-        private const val TAG = "GlassVolumeService"
-        private const val DISMISS_DELAY_MS = 2000L
+        private const val TAG: String = "GlassVolumeService"
+        private const val DISMISS_DELAY_MS: Long = 2000L
 
         @Volatile
-        var isServiceRunning = false
+        var isServiceRunning: Boolean = false
             private set
 
         @Volatile
@@ -593,10 +585,10 @@ class GlassVolumeService : AccessibilityService() {
     private var glassVolumeView: GlassVolumeView? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private var isOverlayAttached = false
-    private var isVisible = false
+    private var isOverlayAttached: Boolean = false
+    private var isVisible: Boolean = false
 
-    private val dismissRunnable = Runnable {
+    private val dismissRunnable: Runnable = Runnable {
         fadeOutOverlay()
     }
 
@@ -647,8 +639,9 @@ class GlassVolumeService : AccessibilityService() {
         if (overlayView != null) return
 
         val inflater = LayoutInflater.from(this)
-        overlayView = inflater.inflate(R.layout.layout_volume_overlay, null)
-        glassVolumeView = overlayView?.findViewById(R.id.glassVolumeView)
+        val inflatedView = inflater.inflate(R.layout.layout_volume_overlay, null)
+        overlayView = inflatedView
+        glassVolumeView = inflatedView.findViewById<GlassVolumeView>(R.id.glassVolumeView)
 
         val density = resources.displayMetrics.density
         val hudWidth = (560f * density).toInt()
@@ -670,9 +663,9 @@ class GlassVolumeService : AccessibilityService() {
         }
 
         try {
-            overlayView?.alpha = 0f
-            overlayView?.visibility = View.GONE
-            windowManager.addView(overlayView, params)
+            inflatedView.alpha = 0f
+            inflatedView.visibility = View.GONE
+            windowManager.addView(inflatedView, params)
             isOverlayAttached = true
         } catch (e: Exception) {
             Log.e(TAG, "Error adding glass overlay view to WindowManager", e)
@@ -830,8 +823,9 @@ class GlassVolumeService : AccessibilityService() {
     category: 'Kotlin Source',
     language: 'kotlin',
     description: '10-foot TV activation screen with service status check and direct Accessibility Settings shortcut.',
-    content: `package in.sambhav.glassvolume
+    content: `package \`in\`.sambhav.glassvolume
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -843,8 +837,8 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import in.sambhav.glassvolume.ui.GlassVolumeView
-import in.sambhav.glassvolume.util.ServiceUtils
+import \`in\`.sambhav.glassvolume.ui.GlassVolumeView
+import \`in\`.sambhav.glassvolume.util.ServiceUtils
 
 class MainActivity : AppCompatActivity() {
 
@@ -856,7 +850,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var livePreviewSlider: GlassVolumeView
     private lateinit var tvLivePreviewHint: TextView
 
-    private var previewVolume = 52
+    private var previewVolume: Int = 52
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -872,20 +866,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initViews() {
-        tvStatusBadge = findViewById(R.id.tvStatusBadge)
-        tvStatusDescription = findViewById(R.id.tvStatusDescription)
-        btnEnableService = findViewById(R.id.btnEnableService)
-        btnTestOverlay = findViewById(R.id.btnTestOverlay)
-        btnTclDiagnostics = findViewById(R.id.btnTclDiagnostics)
-        livePreviewSlider = findViewById(R.id.livePreviewSlider)
-        tvLivePreviewHint = findViewById(R.id.tvLivePreviewHint)
+        tvStatusBadge = findViewById<TextView>(R.id.tvStatusBadge)
+        tvStatusDescription = findViewById<TextView>(R.id.tvStatusDescription)
+        btnEnableService = findViewById<Button>(R.id.btnEnableService)
+        btnTestOverlay = findViewById<Button>(R.id.btnTestOverlay)
+        btnTclDiagnostics = findViewById<Button>(R.id.btnTclDiagnostics)
+        livePreviewSlider = findViewById<GlassVolumeView>(R.id.livePreviewSlider)
+        tvLivePreviewHint = findViewById<TextView>(R.id.tvLivePreviewHint)
 
         livePreviewSlider.setVolume(previewVolume, 100, muted = false, animate = false)
         btnEnableService.requestFocus()
     }
 
     private fun setupListeners() {
-        btnEnableService.setOnClickListener {
+        btnEnableService.setOnClickListener { _: View ->
             try {
                 val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -900,7 +894,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        btnTestOverlay.setOnClickListener {
+        btnTestOverlay.setOnClickListener { _: View ->
             if (GlassVolumeService.isServiceRunning) {
                 GlassVolumeService.triggerTestOverlay(previewVolume)
                 Toast.makeText(this, "Showing TV Overlay for 2 seconds", Toast.LENGTH_SHORT).show()
@@ -914,7 +908,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        btnTclDiagnostics.setOnClickListener {
+        btnTclDiagnostics.setOnClickListener { _: View ->
             showTclDiagnosticsDialog()
         }
     }
@@ -942,7 +936,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showTclDiagnosticsDialog() {
-        AlertDialog.Builder(this, R.style.Theme_AppCompat_Dialog_Alert)
+        AlertDialog.Builder(this, androidx.appcompat.R.style.Theme_AppCompat_Dialog_Alert)
             .setTitle(R.string.tcl_diag_title)
             .setMessage(
                 "TCL Android TV Specific Details:\\n\\n" +
@@ -955,7 +949,7 @@ class MainActivity : AppCompatActivity() {
                 "3. REMOVAL: To restore default TV behavior at any time, toggle off Sambhav Glass Volume in " +
                 "Settings > Device Preferences > Accessibility."
             )
-            .setPositiveButton("OK") { d, _ -> d.dismiss() }
+            .setPositiveButton("OK") { dialog: DialogInterface, _: Int -> dialog.dismiss() }
             .show()
     }
 
@@ -1001,13 +995,13 @@ class MainActivity : AppCompatActivity() {
     category: 'Kotlin Source',
     language: 'kotlin',
     description: 'Utility for inspecting enabled Accessibility Services on Android 9 without false positives.',
-    content: `package in.sambhav.glassvolume.util
+    content: `package \`in\`.sambhav.glassvolume.util
 
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.provider.Settings
 import android.view.accessibility.AccessibilityManager
-import in.sambhav.glassvolume.GlassVolumeService
+import \`in\`.sambhav.glassvolume.GlassVolumeService
 
 object ServiceUtils {
 
@@ -1015,12 +1009,13 @@ object ServiceUtils {
         val am = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? AccessibilityManager
             ?: return false
 
-        val enabledServices = am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+        val enabledServices: List<AccessibilityServiceInfo> =
+            am.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
         val expectedServiceName = "\${context.packageName}/\${GlassVolumeService::class.java.canonicalName}"
 
         for (service in enabledServices) {
             val id = service.id
-            if (id.equals(expectedServiceName, ignoreCase = true) || id.contains(context.packageName)) {
+            if (id != null && (id.equals(expectedServiceName, ignoreCase = true) || id.contains(context.packageName))) {
                 return true
             }
         }
@@ -1369,52 +1364,6 @@ object ServiceUtils {
 `
   },
   {
-    path: 'app/src/main/res/drawable/ic_speaker.xml',
-    filename: 'ic_speaker.xml',
-    category: 'Drawables',
-    language: 'xml',
-    description: 'Vector icon for white speaker with sound waves as seen on the left of the slider.',
-    content: `<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="28dp"
-    android:height="28dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M3,9v6h4l5,5V4L7,9H3zm13.5,3c0,-1.77 -1.02,-3.29 -2.5,-4.03v8.05c1.48,-0.73 2.5,-2.25 2.5,-4.02zM14,3.23v2.06c2.89,0.86 5,3.54 5,6.71s-2.11,5.85 -5,6.71v2.06c4.01,-0.91 7,-4.49 7,-8.77s-2.99,-7.86 -7,-8.77z" />
-</vector>
-`
-  },
-  {
-    path: 'app/src/main/res/drawable/ic_audio_output.xml',
-    filename: 'ic_audio_output.xml',
-    category: 'Drawables',
-    language: 'xml',
-    description: 'Vector icon for AirPlay/Audio Output symbol with circular soundwaves and upward beacon triangle.',
-    content: `<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="28dp"
-    android:height="28dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
-    <path
-        android:fillColor="#FFFFFFFF"
-        android:pathData="M12,14.5L7.5,20h9L12,14.5z" />
-    <path
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="1.7"
-        android:strokeLineCap="round"
-        android:fillColor="#00000000"
-        android:pathData="M8.5,12.5C7.2,11.2 6.5,9.4 6.5,7.5c0,-3 2.5,-5.5 5.5,-5.5s5.5,2.5 5.5,5.5c0,1.9 -0.7,3.7 -2,5" />
-    <path
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="1.7"
-        android:strokeLineCap="round"
-        android:fillColor="#00000000"
-        android:pathData="M5.2,14.8C3.2,12.8 2,10.2 2,7.5C2,2 6.5,-0.5 12,-0.5s10,2.5 10,8c0,2.7 -1.2,5.3 -3.2,7.3" />
-</vector>
-`
-  },
-  {
     path: 'app/src/main/res/drawable/banner.xml',
     filename: 'banner.xml',
     category: 'Drawables',
@@ -1448,33 +1397,20 @@ object ServiceUtils {
 `
   },
   {
-    path: 'app/src/main/res/drawable/ic_launcher.xml',
-    filename: 'ic_launcher.xml',
+    path: 'app/src/main/res/drawable/bg_glass_card.xml',
+    filename: 'bg_glass_card.xml',
     category: 'Drawables',
     language: 'xml',
-    description: 'Adaptive application icon for Sambhav Glass Volume.',
-    content: `<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <path
-        android:fillColor="#111827"
-        android:pathData="M0,0h108v108h-108z" />
-    <path
-        android:pathData="M24,40 h44 a14,14 0 0 1 14,14 a14,14 0 0 1 -14,14 h-44 a14,14 0 0 1 -14,-14 a14,14 0 0 1 14,-14 z"
-        android:fillColor="#1F2937"
-        android:strokeColor="#60FFFFFF"
-        android:strokeWidth="1.5" />
-    <path
-        android:pathData="M24,42 h20 a12,12 0 0 1 12,12 a12,12 0 0 1 -12,12 h-20 a12,12 0 0 1 -12,-12 a12,12 0 0 1 12,-12 z"
-        android:fillColor="#38BDF8" />
-    <path
-        android:pathData="M94,54 m-12,0 a12,12 0 1,1 24,0 a12,12 0 1,1 -24,0"
-        android:fillColor="#1F2937"
-        android:strokeColor="#60FFFFFF"
-        android:strokeWidth="1.5" />
-</vector>
+    description: 'Background drawable for TV dashboard cards.',
+    content: `<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="16dp" />
+    <solid android:color="#1A202C" />
+    <stroke
+        android:width="1dp"
+        android:color="#2D3748" />
+</shape>
 `
   },
   {
@@ -1510,20 +1446,79 @@ object ServiceUtils {
 `
   },
   {
-    path: 'app/src/main/res/drawable/bg_glass_card.xml',
-    filename: 'bg_glass_card.xml',
+    path: 'app/src/main/res/drawable/ic_audio_output.xml',
+    filename: 'ic_audio_output.xml',
     category: 'Drawables',
     language: 'xml',
-    description: 'Background drawable for TV dashboard cards.',
-    content: `<?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <corners android:radius="16dp" />
-    <solid android:color="#1A202C" />
-    <stroke
-        android:width="1dp"
-        android:color="#2D3748" />
-</shape>
+    description: 'Vector icon for AirPlay/Audio Output symbol with circular soundwaves and upward beacon triangle.',
+    content: `<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,14.5L7.5,20h9L12,14.5z" />
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.7"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M8.5,12.5C7.2,11.2 6.5,9.4 6.5,7.5c0,-3 2.5,-5.5 5.5,-5.5s5.5,2.5 5.5,5.5c0,1.9 -0.7,3.7 -2,5" />
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.7"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M5.2,14.8C3.2,12.8 2,10.2 2,7.5C2,2 6.5,-0.5 12,-0.5s10,2.5 10,8c0,2.7 -1.2,5.3 -3.2,7.3" />
+</vector>
+`
+  },
+  {
+    path: 'app/src/main/res/drawable/ic_launcher.xml',
+    filename: 'ic_launcher.xml',
+    category: 'Drawables',
+    language: 'xml',
+    description: 'Adaptive application icon for Sambhav Glass Volume.',
+    content: `<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#111827"
+        android:pathData="M0,0h108v108h-108z" />
+    <path
+        android:pathData="M24,40 h44 a14,14 0 0 1 14,14 a14,14 0 0 1 -14,14 h-44 a14,14 0 0 1 -14,-14 a14,14 0 0 1 14,-14 z"
+        android:fillColor="#1F2937"
+        android:strokeColor="#60FFFFFF"
+        android:strokeWidth="1.5" />
+    <path
+        android:pathData="M24,42 h20 a12,12 0 0 1 12,12 a12,12 0 0 1 -12,12 h-20 a12,12 0 0 1 -12,-12 a12,12 0 0 1 12,-12 z"
+        android:fillColor="#38BDF8" />
+    <path
+        android:pathData="M94,54 m-12,0 a12,12 0 1,1 24,0 a12,12 0 1,1 -24,0"
+        android:fillColor="#1F2937"
+        android:strokeColor="#60FFFFFF"
+        android:strokeWidth="1.5" />
+</vector>
+`
+  },
+  {
+    path: 'app/src/main/res/drawable/ic_speaker.xml',
+    filename: 'ic_speaker.xml',
+    category: 'Drawables',
+    language: 'xml',
+    description: 'Vector icon for white speaker with sound waves as seen on the left of the slider.',
+    content: `<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="28dp"
+    android:height="28dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M3,9v6h4l5,5V4L7,9H3zm13.5,3c0,-1.77 -1.02,-3.29 -2.5,-4.03v8.05c1.48,-0.73 2.5,-2.25 2.5,-4.02zM14,3.23v2.06c2.89,0.86 5,3.54 5,6.71s-2.11,5.85 -5,6.71v2.06c4.01,-0.91 7,-4.49 7,-8.77s-2.99,-7.86 -7,-8.77z" />
+</vector>
 `
   },
   {
@@ -1554,12 +1549,10 @@ jobs:
         run: |
           echo "=== Checking repository root contents ==="
           ls -la
-          # Fix for "Directory does not contain a Gradle build" error:
-          # If files were committed inside a subfolder (e.g., Volume-/ or android/),
-          # move them to the root directory so Gradle finds settings.gradle at root.
+          # If files were committed inside a subfolder, move them to repository root
           if [ ! -f "settings.gradle" ]; then
             echo "settings.gradle not found in root, searching subdirectories..."
-            NESTED_DIR=$(find . -mindepth 2 -maxdepth 3 -name "settings.gradle" -exec dirname {} \; | head -n 1)
+            NESTED_DIR=$(find . -mindepth 2 -maxdepth 3 -name "settings.gradle" -exec dirname {} \\; | head -n 1)
             if [ -n "$NESTED_DIR" ]; then
               echo "Found Gradle project in: $NESTED_DIR. Moving files to repository root..."
               cp -rn "$NESTED_DIR"/* .

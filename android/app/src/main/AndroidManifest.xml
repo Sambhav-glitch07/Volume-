@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="in.sambhav.glassvolume">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Leanback TV Support (required=false allows sideloading on all Android variants) -->
+    <!-- Leanback TV Support -->
     <uses-feature
         android:name="android.software.leanback"
         android:required="false" />
@@ -28,7 +26,7 @@
 
         <!-- Main TV Dashboard / Activation Screen -->
         <activity
-            android:name=".MainActivity"
+            android:name="in.sambhav.glassvolume.MainActivity"
             android:exported="true"
             android:screenOrientation="landscape"
             android:configChanges="orientation|screenSize|screenLayout|keyboard|keyboardHidden|navigation">
@@ -41,7 +39,7 @@
 
         <!-- Core Accessibility Service for Key Interception & Glass Overlay -->
         <service
-            android:name=".GlassVolumeService"
+            android:name="in.sambhav.glassvolume.GlassVolumeService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="true">
             <intent-filter>

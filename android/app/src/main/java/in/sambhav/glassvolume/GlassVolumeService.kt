@@ -1,4 +1,4 @@
-package in.sambhav.glassvolume
+package `in`.sambhav.glassvolume
 
 import android.accessibilityservice.AccessibilityService
 import android.animation.Animator
@@ -22,31 +22,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
-import in.sambhav.glassvolume.ui.GlassVolumeView
+import `in`.sambhav.glassvolume.ui.GlassVolumeView
 
-/**
- * Core Accessibility Service responsible for:
- * 1. Intercepting remote Volume Up, Down, and Mute keys via FLAG_REQUEST_FILTER_KEY_EVENTS.
- * 2. Changing media volume via AudioManager WITHOUT FLAG_SHOW_UI (suppressing stock TCL popup).
- * 3. Rendering the Apple-style frosted glass HUD via TYPE_ACCESSIBILITY_OVERLAY.
- * 4. Syncing with external volume events (HDMI-CEC, TV controls, assistant).
- */
 class GlassVolumeService : AccessibilityService() {
 
     companion object {
-        private const val TAG = "GlassVolumeService"
-        private const val DISMISS_DELAY_MS = 2000L
+        private const val TAG: String = "GlassVolumeService"
+        private const val DISMISS_DELAY_MS: Long = 2000L
 
         @Volatile
-        var isServiceRunning = false
+        var isServiceRunning: Boolean = false
             private set
 
         @Volatile
         private var instance: GlassVolumeService? = null
 
-        /**
-         * Test trigger callable from MainActivity to preview the glass HUD.
-         */
         fun triggerTestOverlay(volumePercent: Int = 52) {
             instance?.showVolumeHud(volumePercent, 100, isMuted = false)
         }
@@ -58,15 +48,13 @@ class GlassVolumeService : AccessibilityService() {
     private var glassVolumeView: GlassVolumeView? = null
 
     private val mainHandler = Handler(Looper.getMainLooper())
-    private var isOverlayAttached = false
-    private var isVisible = false
+    private var isOverlayAttached: Boolean = false
+    private var isVisible: Boolean = false
 
-    // Auto-dismiss runnable
-    private val dismissRunnable = Runnable {
+    private val dismissRunnable: Runnable = Runnable {
         fadeOutOverlay()
     }
 
-    // Observer for system volume changes (handles HDMI-CEC, Bluetooth, remote CEC bypass)
     private val volumeObserver = object : ContentObserver(mainHandler) {
         override fun onChange(selfChange: Boolean, uri: Uri?) {
             super.onChange(selfChange, uri)
@@ -74,7 +62,6 @@ class GlassVolumeService : AccessibilityService() {
         }
     }
 
-    // Broadcast receiver for volume changed intent
     private val volumeReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             if (intent?.action == "android.media.VOLUME_CHANGED_ACTION") {
@@ -97,7 +84,6 @@ class GlassVolumeService : AccessibilityService() {
 
         initOverlay()
 
-        // Register content observer for system volume adjustments
         try {
             contentResolver.registerContentObserver(
                 Settings.System.CONTENT_URI,
@@ -108,7 +94,6 @@ class GlassVolumeService : AccessibilityService() {
             Log.w(TAG, "Failed to register Settings.System volume observer", e)
         }
 
-        // Register broadcast receiver
         val filter = IntentFilter("android.media.VOLUME_CHANGED_ACTION")
         registerReceiver(volumeReceiver, filter)
     }
@@ -117,10 +102,10 @@ class GlassVolumeService : AccessibilityService() {
         if (overlayView != null) return
 
         val inflater = LayoutInflater.from(this)
-        overlayView = inflater.inflate(R.layout.layout_volume_overlay, null)
-        glassVolumeView = overlayView?.findViewById(R.id.glassVolumeView)
+        val inflatedView = inflater.inflate(R.layout.layout_volume_overlay, null)
+        overlayView = inflatedView
+        glassVolumeView = inflatedView.findViewById<GlassVolumeView>(R.id.glassVolumeView)
 
-        // Overlay Window Parameters
         val density = resources.displayMetrics.density
         val hudWidth = (560f * density).toInt()
         val hudHeight = (140f * density).toInt()
@@ -141,19 +126,15 @@ class GlassVolumeService : AccessibilityService() {
         }
 
         try {
-            overlayView?.alpha = 0f
-            overlayView?.visibility = View.GONE
-            windowManager.addView(overlayView, params)
+            inflatedView.alpha = 0f
+            inflatedView.visibility = View.GONE
+            windowManager.addView(inflatedView, params)
             isOverlayAttached = true
         } catch (e: Exception) {
             Log.e(TAG, "Error adding glass overlay view to WindowManager", e)
         }
     }
 
-    /**
-     * Intercepts hardware keys before they reach the system.
-     * Consuming VOLUME_UP and VOLUME_DOWN prevents the TCL stock UI from popping up.
-     */
     override fun onKeyEvent(event: KeyEvent): Boolean {
         val keyCode = event.keyCode
         val action = event.action
@@ -165,7 +146,6 @@ class GlassVolumeService : AccessibilityService() {
             if (action == KeyEvent.ACTION_DOWN) {
                 handleVolumeKey(keyCode)
             }
-            // Return true to consume the key event and block stock TV SystemUI
             return true
         }
 
@@ -180,10 +160,8 @@ class GlassVolumeService : AccessibilityService() {
             else -> AudioManager.ADJUST_SAME
         }
 
-        // Adjust real Android volume WITHOUT FLAG_SHOW_UI (flag 0)
         audioManager.adjustStreamVolume(AudioManager.STREAM_MUSIC, direction, 0)
 
-        // Read updated volume values
         val current = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
         val max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         val min = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -221,7 +199,6 @@ class GlassVolumeService : AccessibilityService() {
             current == 0
         }
 
-        // Only display if already showing or if triggered by external change
         if (isVisible) {
             glassVolumeView?.setVolume(percentage, 100, isMuted, animate = animate)
             resetDismissTimer()
@@ -272,9 +249,7 @@ class GlassVolumeService : AccessibilityService() {
             .start()
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        // No-op for this overlay service
-    }
+    override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
 
     override fun onInterrupt() {
         Log.w(TAG, "Sambhav Glass Volume Service interrupted.")
