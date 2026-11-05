@@ -16,6 +16,27 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Locate and Validate Gradle Root
+        run: |
+          echo "=== Checking repository root contents ==="
+          ls -la
+          # Fix for "Directory does not contain a Gradle build" error:
+          # If files were committed inside a subfolder (e.g., Volume-/ or android/),
+          # move them to the root directory so Gradle finds settings.gradle at root.
+          if [ ! -f "settings.gradle" ]; then
+            echo "settings.gradle not found in root, searching subdirectories..."
+            NESTED_DIR=$(find . -mindepth 2 -maxdepth 3 -name "settings.gradle" -exec dirname {} \; | head -n 1)
+            if [ -n "$NESTED_DIR" ]; then
+              echo "Found Gradle project in: $NESTED_DIR. Moving files to repository root..."
+              cp -rn "$NESTED_DIR"/* .
+            else
+              echo "ERROR: settings.gradle could not be found anywhere in repository!"
+              exit 1
+            fi
+          fi
+          echo "=== Verified settings.gradle at repository root ==="
+          ls -la settings.gradle
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -23,15 +44,12 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: Grant Execute Permission for Gradlew
-        run: chmod +x gradlew || true
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.6
 
-      - name: Build Debug APK with Gradle
+      - name: Build Debug APK
         run: gradle assembleDebug --stacktrace --no-daemon
 
       - name: Verify APK Output
@@ -39,10 +57,10 @@ jobs:
           ls -la app/build/outputs/apk/debug/
           test -f app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Upload Sambhav Glass Volume APK Artifact
+      - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Sambhav-Glass-Volume-AndroidTV-Debug
+          name: app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30

@@ -1,7 +1,7 @@
 export interface ProjectFile {
   path: string;
   filename: string;
-  category: 'Gradle & Config' | 'Manifest & XML' | 'Kotlin Source' | 'Layouts' | 'Drawables' | 'CI/CD & Docs';
+  category: 'Root Gradle' | 'App Gradle & Manifest' | 'Kotlin Source' | 'XML Layouts & Config' | 'Drawables' | 'CI/CD Workflow';
   language: string;
   description: string;
   content: string;
@@ -11,9 +11,9 @@ export const PROJECT_FILES: ProjectFile[] = [
   {
     path: 'settings.gradle',
     filename: 'settings.gradle',
-    category: 'Gradle & Config',
+    category: 'Root Gradle',
     language: 'groovy',
-    description: 'Declares repository sources (Google, MavenCentral) and the root :app module.',
+    description: 'Declares repositories and module :app at repository root.',
     content: `pluginManagement {
     repositories {
         google()
@@ -28,16 +28,16 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "SambhavGlassVolume"
+rootProject.name = "Volume"
 include ':app'
 `
   },
   {
     path: 'build.gradle',
-    filename: 'build.gradle (root)',
-    category: 'Gradle & Config',
+    filename: 'build.gradle',
+    category: 'Root Gradle',
     language: 'groovy',
-    description: 'Root Gradle configuration configuring Android Gradle Plugin 8.3.0 and Kotlin 1.9.23.',
+    description: 'Root build configuration loading Android Application plugin 8.3.0 and Kotlin 1.9.23.',
     content: `// Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
     id 'com.android.application' version '8.3.0' apply false
@@ -52,9 +52,9 @@ tasks.register('clean', Delete) {
   {
     path: 'gradle.properties',
     filename: 'gradle.properties',
-    category: 'Gradle & Config',
+    category: 'Root Gradle',
     language: 'properties',
-    description: 'JVM memory settings and AndroidX configuration for reliable standalone builds.',
+    description: 'Gradle JVM and AndroidX properties.',
     content: `org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
 android.useAndroidX=true
 android.enableJetifier=false
@@ -65,9 +65,9 @@ android.nonTransitiveRClass=true
   {
     path: 'app/build.gradle',
     filename: 'app/build.gradle',
-    category: 'Gradle & Config',
+    category: 'App Gradle & Manifest',
     language: 'groovy',
-    description: 'App module configuration: minSdk 28 (Android 9 Pie for TCL TV), package name in.sambhav.glassvolume, Java 17.',
+    description: 'App module build script: minSdk 28, targetSdk 34, Java 17, and TV Leanback dependencies.',
     content: `plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
@@ -90,7 +90,6 @@ android {
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
             applicationIdSuffix ""
@@ -106,10 +105,6 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
-
-    buildFeatures {
-        viewBinding true
-    }
 }
 
 dependencies {
@@ -124,15 +119,15 @@ dependencies {
   {
     path: 'app/src/main/AndroidManifest.xml',
     filename: 'AndroidManifest.xml',
-    category: 'Manifest & XML',
+    category: 'App Gradle & Manifest',
     language: 'xml',
-    description: 'Declares TV Leanback launcher, AccessibilityService binding, and audio/window overlay permissions.',
+    description: 'Declares TV Leanback launcher, Accessibility Service with BIND_ACCESSIBILITY_SERVICE, and audio permissions.',
     content: `<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="in.sambhav.glassvolume">
 
-    <!-- Leanback TV Support (required=false allows sideloading on all Android variants) -->
+    <!-- Leanback TV Support -->
     <uses-feature
         android:name="android.software.leanback"
         android:required="false" />
@@ -189,9 +184,9 @@ dependencies {
   {
     path: 'app/src/main/res/xml/volume_service_config.xml',
     filename: 'volume_service_config.xml',
-    category: 'Manifest & XML',
+    category: 'XML Layouts & Config',
     language: 'xml',
-    description: 'Critical accessibility configuration with flagRequestFilterKeyEvents and canRequestFilterKeyEvents enabled.',
+    description: 'Accessibility Service XML declaring flagRequestFilterKeyEvents and canRequestFilterKeyEvents.',
     content: `<?xml version="1.0" encoding="utf-8"?>
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
     android:accessibilityEventTypes="typeWindowStateChanged|typeWindowContentChanged"
@@ -242,15 +237,13 @@ class GlassVolumeView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    // Dynamic state
-    private var currentProgress = 0.52f // 0.0f to 1.0f
+    private var currentProgress = 0.52f
     private var targetProgress = 0.52f
     private var displayedVolume = 52
     private var isMuted = false
 
     private var progressAnimator: ValueAnimator? = null
 
-    // Geometry measurements in pixels
     private var pillWidth = 0f
     private var pillHeight = 0f
     private var circleSize = 0f
@@ -259,10 +252,8 @@ class GlassVolumeView @JvmOverloads constructor(
     private val mainPillRect = RectF()
     private val circleRect = RectF()
     private val pillClipPath = Path()
-    private val fillClipPath = Path()
     private val crestPath = Path()
 
-    // Paints
     private val pillGlassPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val pillBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
@@ -283,15 +274,12 @@ class GlassVolumeView @JvmOverloads constructor(
         typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
     }
 
-    // Cached drawables for speaker and output icons
     private val speakerDrawable = ContextCompat.getDrawable(context, R.drawable.ic_speaker)
     private val outputDrawable = ContextCompat.getDrawable(context, R.drawable.ic_audio_output)
 
-    // Visual dimensions in DP converted to PX
     private val dp = resources.displayMetrics.density
 
     init {
-        // High quality rendering
         setLayerType(LAYER_TYPE_HARDWARE, null)
     }
 
@@ -321,12 +309,10 @@ class GlassVolumeView @JvmOverloads constructor(
         val circleLeft = startX + pillWidth + gap
         circleRect.set(circleLeft, startY, circleLeft + circleSize, startY + circleSize)
 
-        // Precompute Clip Paths
         val pillCornerRadius = pillHeight / 2f
         pillClipPath.reset()
         pillClipPath.addRoundRect(mainPillRect, pillCornerRadius, pillCornerRadius, Path.Direction.CW)
 
-        // Shaders for dark frosted glass
         val glassGradient = LinearGradient(
             mainPillRect.left, mainPillRect.top,
             mainPillRect.left, mainPillRect.bottom,
@@ -340,7 +326,6 @@ class GlassVolumeView @JvmOverloads constructor(
         )
         pillGlassPaint.shader = glassGradient
 
-        // Specular border gradient (brighter at top reflection, subtle at bottom)
         val borderGradient = LinearGradient(
             mainPillRect.left, mainPillRect.top,
             mainPillRect.left, mainPillRect.bottom,
@@ -355,7 +340,6 @@ class GlassVolumeView @JvmOverloads constructor(
         pillBorderPaint.strokeWidth = 1.35f * dp
         pillBorderPaint.shader = borderGradient
 
-        // Circular output button shaders
         circleGlassPaint.shader = LinearGradient(
             circleRect.left, circleRect.top,
             circleRect.left, circleRect.bottom,
@@ -381,20 +365,15 @@ class GlassVolumeView @JvmOverloads constructor(
 
         if (pillWidth <= 0 || pillHeight <= 0) return
 
-        // 1. DRAW MAIN PILL SLIDER
         drawMainPill(canvas)
-
-        // 2. DRAW RIGHT CIRCULAR AUDIO OUTPUT BUTTON
         drawCircleButton(canvas)
     }
 
     private fun drawMainPill(canvas: Canvas) {
         val pillRadius = pillHeight / 2f
 
-        // A. Base dark translucent glass capsule
         canvas.drawRoundRect(mainPillRect, pillRadius, pillRadius, pillGlassPaint)
 
-        // B. Active Volume Fill with curved specular meniscus crest
         if (currentProgress > 0.005f) {
             canvas.save()
             canvas.clipPath(pillClipPath)
@@ -422,7 +401,6 @@ class GlassVolumeView @JvmOverloads constructor(
                 fillPaint
             )
 
-            // Draw curved meniscus crest
             val bulge = (pillHeight * 0.35f).coerceAtMost(fillRight - mainPillRect.left)
             crestPath.reset()
             crestPath.moveTo(fillRight, mainPillRect.top)
@@ -437,7 +415,6 @@ class GlassVolumeView @JvmOverloads constructor(
 
             canvas.drawPath(crestPath, fillPaint)
 
-            // Glowing blue-white specular crest reflection
             fillCrestHighlightPaint.strokeWidth = 2.2f * dp
             val crestShader = LinearGradient(
                 fillRight, mainPillRect.top,
@@ -465,7 +442,6 @@ class GlassVolumeView @JvmOverloads constructor(
             canvas.restore()
         }
 
-        // C. Upper glass internal lens flare / horizontal highlight
         val upperReflectionPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = LinearGradient(
                 mainPillRect.left, mainPillRect.top,
@@ -493,10 +469,8 @@ class GlassVolumeView @JvmOverloads constructor(
             upperReflectionPaint
         )
 
-        // D. Outer thin reflective white border
         canvas.drawRoundRect(mainPillRect, pillRadius, pillRadius, pillBorderPaint)
 
-        // E. Speaker Icon & Volume Text (Left section)
         val iconSize = (pillHeight * 0.34f).toInt()
         val contentPaddingLeft = mainPillRect.left + (pillHeight * 0.42f)
         val centerY = mainPillRect.centerY()
@@ -568,7 +542,7 @@ class GlassVolumeView @JvmOverloads constructor(
     filename: 'GlassVolumeService.kt',
     category: 'Kotlin Source',
     language: 'kotlin',
-    description: 'AccessibilityService intercepting TV remote volume keys, silencing stock TCL UI, and displaying TYPE_ACCESSIBILITY_OVERLAY.',
+    description: 'Accessibility Service intercepting TV remote volume keys, silencing stock UI, and displaying overlay.',
     content: `package in.sambhav.glassvolume
 
 import android.accessibilityservice.AccessibilityService
@@ -595,13 +569,6 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import in.sambhav.glassvolume.ui.GlassVolumeView
 
-/**
- * Core Accessibility Service responsible for:
- * 1. Intercepting remote Volume Up, Down, and Mute keys via FLAG_REQUEST_FILTER_KEY_EVENTS.
- * 2. Changing media volume via AudioManager WITHOUT FLAG_SHOW_UI (suppressing stock TCL popup).
- * 3. Rendering the Apple-style frosted glass HUD via TYPE_ACCESSIBILITY_OVERLAY.
- * 4. Syncing with external volume events (HDMI-CEC, TV controls, assistant).
- */
 class GlassVolumeService : AccessibilityService() {
 
     companion object {
@@ -862,12 +829,11 @@ class GlassVolumeService : AccessibilityService() {
     filename: 'MainActivity.kt',
     category: 'Kotlin Source',
     language: 'kotlin',
-    description: '10-foot TV activation screen with service status check, D-Pad test controls, and direct Accessibility Settings shortcut.',
+    description: '10-foot TV activation screen with service status check and direct Accessibility Settings shortcut.',
     content: `package in.sambhav.glassvolume
 
 import android.content.Intent
 import android.graphics.Color
-import android.media.AudioManager
 import android.os.Bundle
 import android.provider.Settings
 import android.view.KeyEvent
@@ -1080,7 +1046,7 @@ object ServiceUtils {
   {
     path: 'app/src/main/res/layout/activity_main.xml',
     filename: 'activity_main.xml',
-    category: 'Layouts',
+    category: 'XML Layouts & Config',
     language: 'xml',
     description: 'Layout for the 10-foot TV activation screen, buttons, and live preview.',
     content: `<?xml version="1.0" encoding="utf-8"?>
@@ -1097,7 +1063,6 @@ object ServiceUtils {
         android:orientation="vertical"
         android:padding="36dp">
 
-        <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -1297,7 +1262,7 @@ object ServiceUtils {
   {
     path: 'app/src/main/res/layout/layout_volume_overlay.xml',
     filename: 'layout_volume_overlay.xml',
-    category: 'Layouts',
+    category: 'XML Layouts & Config',
     language: 'xml',
     description: 'Floating window layout added to WindowManager using TYPE_ACCESSIBILITY_OVERLAY.',
     content: `<?xml version="1.0" encoding="utf-8"?>
@@ -1319,7 +1284,7 @@ object ServiceUtils {
   {
     path: 'app/src/main/res/values/strings.xml',
     filename: 'strings.xml',
-    category: 'Manifest & XML',
+    category: 'XML Layouts & Config',
     language: 'xml',
     description: 'String resources for app title, accessibility descriptions, and TCL compatibility guidance.',
     content: `<?xml version="1.0" encoding="utf-8"?>
@@ -1355,12 +1320,11 @@ object ServiceUtils {
   {
     path: 'app/src/main/res/values/colors.xml',
     filename: 'colors.xml',
-    category: 'Manifest & XML',
+    category: 'XML Layouts & Config',
     language: 'xml',
     description: 'Color definitions for TV dark interface, glass specular gradients, and active status indicators.',
     content: `<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- TV Dark Aesthetics -->
     <color name="tv_bg_dark">#0F1115</color>
     <color name="tv_card_bg">#1A1D24</color>
     <color name="tv_card_border">#2C3240</color>
@@ -1368,20 +1332,17 @@ object ServiceUtils {
     <color name="tv_text_secondary">#94A3B8</color>
     <color name="tv_text_muted">#64748B</color>
 
-    <!-- Glass Volume Aesthetic Colors -->
     <color name="glass_dark_base">#2A2E35</color>
     <color name="glass_border_white">#4DFFFFFF</color>
     <color name="glass_border_specular">#99FFFFFF</color>
     <color name="glass_fill_crystal_blue">#A5D8FF</color>
     <color name="glass_fill_crest_glow">#E0F2FE</color>
 
-    <!-- Status Badges -->
     <color name="status_green_badge">#10B981</color>
     <color name="status_green_bg">#064E3B</color>
     <color name="status_red_badge">#EF4444</color>
     <color name="status_red_bg">#7F1D1D</color>
 
-    <!-- TV D-Pad Focus Colors -->
     <color name="tv_focus_ring">#38BDF8</color>
     <color name="tv_focus_bg">#0284C7</color>
     <color name="tv_button_normal">#252C37</color>
@@ -1391,7 +1352,7 @@ object ServiceUtils {
   {
     path: 'app/src/main/res/values/styles.xml',
     filename: 'styles.xml',
-    category: 'Manifest & XML',
+    category: 'XML Layouts & Config',
     language: 'xml',
     description: 'Theme styles for Android TV application with no ActionBar and dark window background.',
     content: `<?xml version="1.0" encoding="utf-8"?>
@@ -1566,38 +1527,11 @@ object ServiceUtils {
 `
   },
   {
-    path: 'app/proguard-rules.pro',
-    filename: 'proguard-rules.pro',
-    category: 'Gradle & Config',
-    language: 'properties',
-    description: 'ProGuard/R8 rules keeping core Accessibility Service and View classes intact.',
-    content: `# Proguard rules for Sambhav Glass Volume (Android TV)
--keep class in.sambhav.glassvolume.ui.GlassVolumeView { *; }
--keep class in.sambhav.glassvolume.GlassVolumeService { *; }
--keep class in.sambhav.glassvolume.MainActivity { *; }
-`
-  },
-  {
-    path: 'gradle/wrapper/gradle-wrapper.properties',
-    filename: 'gradle-wrapper.properties',
-    category: 'Gradle & Config',
-    language: 'properties',
-    description: 'Standard Gradle 8.6 distribution wrapper.',
-    content: `distributionBase=GRADLE_USER_HOME
-distributionPath=wrapper/dists
-distributionUrl=https\\://services.gradle.org/distributions/gradle-8.6-bin.zip
-networkTimeout=10000
-validateDistributionUrl=true
-zipStoreBase=GRADLE_USER_HOME
-zipStorePath=wrapper/dists
-`
-  },
-  {
     path: '.github/workflows/build.yml',
     filename: 'build.yml',
-    category: 'CI/CD & Docs',
+    category: 'CI/CD Workflow',
     language: 'yaml',
-    description: 'GitHub Actions workflow compiling the standalone APK via Gradle and uploading app-debug.apk as artifact.',
+    description: 'GitHub Actions workflow with root validator & auto-healing that compiles the debug APK.',
     content: `name: Build Sambhav Glass Volume APK
 
 on:
@@ -1616,6 +1550,27 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Locate and Validate Gradle Root
+        run: |
+          echo "=== Checking repository root contents ==="
+          ls -la
+          # Fix for "Directory does not contain a Gradle build" error:
+          # If files were committed inside a subfolder (e.g., Volume-/ or android/),
+          # move them to the root directory so Gradle finds settings.gradle at root.
+          if [ ! -f "settings.gradle" ]; then
+            echo "settings.gradle not found in root, searching subdirectories..."
+            NESTED_DIR=$(find . -mindepth 2 -maxdepth 3 -name "settings.gradle" -exec dirname {} \; | head -n 1)
+            if [ -n "$NESTED_DIR" ]; then
+              echo "Found Gradle project in: $NESTED_DIR. Moving files to repository root..."
+              cp -rn "$NESTED_DIR"/* .
+            else
+              echo "ERROR: settings.gradle could not be found anywhere in repository!"
+              exit 1
+            fi
+          fi
+          echo "=== Verified settings.gradle at repository root ==="
+          ls -la settings.gradle
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -1623,15 +1578,12 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: Grant Execute Permission for Gradlew
-        run: chmod +x gradlew || true
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.6
 
-      - name: Build Debug APK with Gradle
+      - name: Build Debug APK
         run: gradle assembleDebug --stacktrace --no-daemon
 
       - name: Verify APK Output
@@ -1639,47 +1591,13 @@ jobs:
           ls -la app/build/outputs/apk/debug/
           test -f app/build/outputs/apk/debug/app-debug.apk
 
-      - name: Upload Sambhav Glass Volume APK Artifact
+      - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Sambhav-Glass-Volume-AndroidTV-Debug
+          name: app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
-`
-  },
-  {
-    path: 'README.md',
-    filename: 'README.md',
-    category: 'CI/CD & Docs',
-    language: 'markdown',
-    description: 'Comprehensive installation, sideloading, TCL TV remote compatibility, and GitHub Actions guide.',
-    content: `# Sambhav Glass Volume (Android TV)
-
-Standalone Android TV volume overlay replicating the Apple-style frosted glass HUD for **TCL Android TV (Android 9 / API 28)**.
-
-## 🌟 Key Highlights
-- **Exact Reference Reproduction**: Translucent smoky dark glass capsule, curved liquid meniscus fill with specular blue-white reflection highlight, speaker icon, live volume number ("52"), and circular AirPlay-style audio output button.
-- **Hardware Remote Interception**: Intercepts KEYCODE_VOLUME_UP, KEYCODE_VOLUME_DOWN, and KEYCODE_VOLUME_MUTE via AccessibilityService with FLAG_REQUEST_FILTER_KEY_EVENTS.
-- **SystemUI Popup Silencer**: Adjusts media stream volume via AudioManager without FLAG_SHOW_UI, preventing the default TV manufacturer volume popup from appearing.
-- **Pure Native Views & Canvas**: Built using pure Android Views, custom hardware-accelerated 2D Canvas rendering, and ValueAnimator—zero Jetpack Compose bloat, ensuring smooth 60fps performance on TV stick processors.
-- **10-Foot TV Setup UI**: High-contrast, D-Pad focusable TV dashboard with active status detection, in-app live preview, and direct shortcut to Accessibility Settings.
-- **Automated GitHub Actions Build**: Automatically produces app-debug.apk ready to sideload.
-
-## 📁 Repository Structure
-See repository files list.
-
-## 🚀 How to Build via GitHub Actions (Zero Local Setup)
-1. Push this repository to GitHub.
-2. Go to the Actions tab on your GitHub repository.
-3. The "Build Sambhav Glass Volume APK" workflow triggers automatically.
-4. Once completed (~2 minutes), click the run and download the "Sambhav-Glass-Volume-AndroidTV-Debug" artifact containing app-debug.apk.
-
-## 📺 How to Sideload & Install on TCL Android TV
-1. Copy app-debug.apk to a USB drive or send via "Send Files to TV" app.
-2. Install via TV file manager (allow Unknown Apps if prompted).
-3. Open Sambhav Glass Volume, click "ENABLE GLASS VOLUME", toggle ON in Accessibility Settings.
-4. Return to app: Status turns green ACTIVE!
 `
   }
 ];
